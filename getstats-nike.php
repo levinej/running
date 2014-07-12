@@ -19,7 +19,7 @@ include('top-cache.php');
 <div class="widget widget_recent_entries">
 <?php
 require_once 'nikeplusphp.4.5.1.php';
-require_once 'cindyruns.php';
+require_once 'cindyruns-nike.php';
 
 $n = new NikePlusPHP('$cindyrunsUsername', '$cindyrunsPassword');
 
