@@ -2,8 +2,8 @@
 #phpinfo();
 
   require_once 'nikeplusphp.4.5.1.php';
-  require 'cindyruns.php';
-  $n = new NikePlusPHP('$cindyrunsUsername', '$cindyrunsPassword');
+  require 'cindyruns-nike.php';
+  $n = new NikePlusPHP($cindyrunsUsername, $cindyrunsPassword);
 
   $activities = $n->activities();
 echo "Activities:<pre>";
