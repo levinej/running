@@ -3,10 +3,62 @@
 include('httpful.phar');
 include('cindyruns.php');
 
+$preferenceUrl = "https://api.runningahead.com/rest/users/me/preference" . "?access_token=$access_token";       
+$preference = \Httpful\Request::get($preferenceUrl) 
+    ->send(); 
+
+       echo "preferences:<pre>";
+	var_dump($preference);  
+	echo "</pre><br>";
+
+//PUT https://api.runningahead.com/rest/users/me/preference
+
+$setPreferenceUrl = "https://api.runningahead.com/rest/users/me/preference" . "?access_token=$access_token";       
+
+$setPreferenceData = array(
+              'utcOffset'=>'0',
+              'distanceUnit'=>'mi',
+              'weightUnit'=>'lb',
+              'temperatureUnit'=>'F'
+              );
+              
+              $setPreference = \Httpful\Request::put($setPreferenceUrl, json_encode($setPreferenceData)) 
+    ->send(); 
+
+       echo "preferences set:<pre>";
+	var_dump($setPreference);  
+	echo "</pre><br>";
+
+$allActivityUrl = "https://api.runningahead.com/rest/logs/me/activity_types" . "?access_token=$access_token";       
+$allActivity = \Httpful\Request::get($allActivityUrl) 
+    ->send(); 
+
+       echo "all activity:<pre>";
+	var_dump($allActivity);  
+	echo "</pre><br>";
+	
+
+$allEquipUrl = "https://api.runningahead.com/rest/logs/me/equipment" . "?access_token=$access_token&showRetired=true	";       
+$allEquip = \Httpful\Request::get($allEquipUrl) 
+    ->send(); 
+
+       echo "all equipment:<pre>";
+	var_dump($allEquip);  
+	echo "</pre><br>";
+	
+
+$allCoursesUrl = "https://api.runningahead.com/rest/logs/me/courses" . "?access_token=$access_token";       
+$allCourses = \Httpful\Request::get($allCoursesUrl) 
+    ->send(); 
+
+       echo "all courses:<pre>";
+	var_dump($allCourses);  
+	echo "</pre><br>";
+
 $url = "https://api.runningahead.com/rest/logs/me/workouts?";
 
 $data = array('access_token'=>$access_token,
-              //'fields'=>'12,20',
+              'fields'=>'12,13',
               //'activityID'=>'10',
               //'filters'=>'[["date", "lt", "2013-01-01"], ["date", "gt", "2011-12-31"]]',
               //'filters'=>'[["activityID","eq",10], ["date", "gt", "2013-12-31"]]',
