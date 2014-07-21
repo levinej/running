@@ -9,25 +9,51 @@
   $n = new NikePlusPHP($cindyrunsUsername, $cindyrunsPassword);
 
   $activities = $n->activities();
+  
+  $mapping['terrain']['treadmill'] = 'yhzCj8TSv56cykowks9ey2';
+  $mapping['shoe']['Sauc ride new'] = 'PvE1YlzDWoVQpB5nJXAl51';
+  $mapping['shoe']['Asics cumulus'] = 'w0F60t407qwy37rmrypO54';
+  $mapping['shoe']['New Balance 980'] = 'e8zwx5x9nw7AwSQcTpCPr3';
+  $mapping['shoe']['Saucony Ride 6'] = 'o9Np2pJjSK60k28hqoHpK0';
+  $mapping['shoe']['Mizuno Wave 17'] = 'dzzFwxWkEbEYRSAi746gl8';
+  $mapping['shoe']['Nimbus 15 Lite'] = 'mhfQon9ROKwJWieh85BFz4';
+  $mapping['shoe']['Brooks Glyc 11'] = 'w2M7BNW2zwPFLVQBUltJL2';
+  $mapping['shoe']['Nimbus 15 Pink'] = 'umXYzP5tDIDArGzFLOzzf6';
+  $mapping['shoe']['Brooks Glyc 10'] = 'zKNwoy0weLBazjRdH30rl8';
+  $mapping['shoe']['Nimbus 14 Rainb'] = '9XmnBJl4hK6N98gGOOMv10';
+  $mapping['shoe']['Nimbus 14 Pink'] = '0jGuGIgvkK625hPmV9sAo2';
+  $mapping['shoe']['Nimbus 14 Grey'] = '2yomDUnlLA5TyFeVF3FJI9';
+  $mapping['weather']['sunny'] = 'clear';
+  $mapping['weather']['rainy'] = 'rain';  
+  $mapping['weather']['cloudy'] = 'partlyCloudy';
+  $mapping['weather']['partly_sunny'] = 'overcast'; 
+  $mapping['weather']['snowy'] = 'snow';
+  $mapping['tag']['[easyrun]'] = '1'; 
+  $mapping['tag']['[longrun]'] = '4'; 
+  $mapping['tag']['[race]'] = '6'; 
+  $mapping['tag']['[recoveryrun]'] = '1'; 
+  $mapping['tag']['[halfmarathon]'] = '6';     
 
 $format = 'Y-m-d';
-date_default_timezone_set("EST5EDT");
+// it looks like can't get runningahead to use GMT right now...so we'll need to run twice
+date_default_timezone_set('EST5EDT');
+//date_default_timezone_set('EST');
 
 $summary = array();
 
 foreach ($activities as $activity) {
   $date = $activity->startTimeUtc;
   echo "$date|";
-  $terrain = $activity->tags->terrain;
+  $terrain = trim($activity->tags->terrain);
   echo "$terrain|";
-  $shoe = $activity->tags->SHOES->name;
+  $shoe = trim($activity->tags->SHOES->name);
   echo "$shoe|";
-  $weather = $activity->tags->weather;
+  $weather = trim($activity->tags->weather);
   echo "$weather|";
   $note = $activity->tags->note;
   $tag = "";
   preg_match('/\[.*?\]/', $note, $tags);
-  $tag = $tags[0];
+  $tag = trim($tags[0]);
   $note = preg_replace('/\[.*?\]/', "", $note);
   $note = trim($note);
   echo "$note|";
@@ -87,7 +113,7 @@ foreach ($activities as $activity) {
  	 }
   } 
   
-  //count comption
+  //count emotion
   if (!empty($emotion))
   {
   	if (isset($summary['emotion'][$temotion]))
@@ -138,24 +164,64 @@ else
 	}
 	else
 	{
+	if ($note === NULL || $note == "amped")
+	{
+		echo ("$shortLocatDate at $shortLocalTime does not have a note - skipping\n");
+	}
+	else
+	{
 		echo ("id to edit: $idToUpdate");
-		/*
+
 		$updateUrl = "https://api.runningahead.com/rest/logs/me/workouts/$idToUpdate?access_token=$access_token";
-
-		$updateData['workout'] = array();
 		
-		if ($terrain == 
+		// map terrain to course
+		if (isset($mapping['terrain'][$terrain]))
+		{
+			//$updateData['workout']['course']['id'] = $mapping['terrain'][$terrain];
+		}
+		
+		//  map shoe to equipment
+		if (isset($mapping['shoe'][$shoe]))
+		{
+			//$updateData['workout']['equipment']['id'] = $mapping['shoe'][$shoe];
+		}
 
-		$updateUrl = $updateUrl . http_build_query($data);
+		//  map weather to conditions
+		if (isset($mapping['weather'][$weather]))
+		{
+			//$updateData['workout']['weather']['conditions'][$weather] = true;
+		}
+		
+		//  map tag to type
+		if (isset($mapping['tag'][$tag]))
+		{
+			//$updateData['workout']['workOutID'] = $mapping['tag'][$tag];
+		}
+		
+		//$updateData['workout']['notes'] = $note;
+		
+		// for testing
+		$updateData['workout']['date'] = '2014-06-22';
+		$updateData['workout']['activityID'] = 10;
+		
+		//echo "\nupdate:\n";
+		//var_dump($updateData);  
+		//echo "\n";
+        
+        $update = \Httpful\Request::put($updateUrl, json_encode($updateData)) 
+    	->send(); 
+    	
+    	echo "\\nUpdate Summary:\n";
+		var_dump($update);  
+		echo "\n";
 
-		$updateResponse = \Httpful\Request::put($url) 
-    		->send(); 
-    		*/          
+    
+	}
 	}
 }
 ob_flush();
 flush();
-//break;
+break;
 }
 
 	echo "summary:\n";

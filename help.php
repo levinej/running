@@ -3,6 +3,16 @@
 include('httpful.phar');
 include('cindyruns.php');
 
+//https://api.runningahead.com/rest/logs/me/workouts/2FTFry7in2D9zRPz8VA7JQ?
+
+$getRequestUrl = "https://api.runningahead.com/rest/logs/me/workouts/2FTFry7in2D9zRPz8VA7JQ" . "?access_token=$access_token";       
+$getRequest = \Httpful\Request::get($getRequestUrl) 
+    ->send(); 
+
+       echo "request:<pre>";
+	var_dump($getRequest);  
+	echo "</pre><br>";
+
 $preferenceUrl = "https://api.runningahead.com/rest/users/me/preference" . "?access_token=$access_token";       
 $preference = \Httpful\Request::get($preferenceUrl) 
     ->send(); 
