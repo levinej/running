@@ -21,6 +21,7 @@
   $mapping['shoe']['Nimbus 15 Pink'] = 'umXYzP5tDIDArGzFLOzzf6';
   $mapping['shoe']['Brooks Glyc 10'] = 'zKNwoy0weLBazjRdH30rl8';
   $mapping['shoe']['Nimbus 14 Rainb'] = '9XmnBJl4hK6N98gGOOMv10';
+  $mapping['shoe']['Nim 14 Purple 1'] = 'UfnhkxStLqYyLj0WwTMX07';
   $mapping['shoe']['Nimbus 14 Pink'] = '0jGuGIgvkK625hPmV9sAo2';
   $mapping['shoe']['Nimbus 14 Grey'] = '2yomDUnlLA5TyFeVF3FJI9';
   $mapping['weather']['sunny'] = 'clear';
@@ -35,9 +36,7 @@
   $mapping['tag']['[halfmarathon]'] = '6';     
 
 $format = 'Y-m-d';
-// it looks like can't get runningahead to use GMT right now...so we'll need to run twice
-date_default_timezone_set('EST5EDT');
-//date_default_timezone_set('EST');
+date_default_timezone_set('EST');
 
 $summary = array();
 
@@ -132,9 +131,8 @@ foreach ($activities as $activity) {
 //2012-08-04T07:51:12-05:00
 $parsedDate = strtotime($date);
 $shortLocalDate = date('Y-m-d',$parsedDate);
-$shortLocalTime = date('H:i:s',$parsedDate);
-echo "shortdate: $shortLocalDate\n";
-echo "local time: $shortLocalTime\n";
+// Somehow this matches every run - not really sure why
+$shortLocalTime = date('H:i:s',$parsedDate + 3600);
 
 $url = "https://api.runningahead.com/rest/logs/me/workouts?";
 
@@ -147,9 +145,12 @@ $url = $url . http_build_query($data);
 $response = \Httpful\Request::get($url) 
     ->send();           
 
-$numEntries = $response->body->data->numEntries;
+//echo "\n\Response to search to update:\n";
+//var_dump($response);  
+//echo "\n";
 
-echo ("numEntries: $numEntries\n");
+//$numEntries = $response->body->data->numEntries;
+//echo ("numEntries: $numEntries\n");
 
 if ($numEntries > 1)
 {
@@ -171,62 +172,93 @@ else
 	else
 	{
 		echo ("id to edit: $idToUpdate");
+		
+		// first we need to get the existing workout object so that we can update it
+		// partial updates are not supported
+		$workoutUrl = "https://api.runningahead.com/rest/logs/me/workouts/$idToUpdate?access_token=$access_token";
+		
+		$getWorkout = \Httpful\Request::get($workoutUrl) 
+    	->send(); 
 
-		$updateUrl = "https://api.runningahead.com/rest/logs/me/workouts/$idToUpdate?access_token=$access_token";
+    	//echo "\n\nWorkout to update:\n";
+		//var_dump($getWorkout);  
+		//echo "\n";
+
+		// set updateData to current workout data
+		$updateData = (array) $getWorkout->body->data->workout;
+		
+		// remove some read-only fields
+		unset($updateData['url']);
+		unset($updateData['attributes']);
+		unset($updateData['id']);
+		unset($updateData['activityName']);
+		unset($updateData['workoutName']);
+		
+		// now update with new data
 		
 		// map terrain to course
 		if (isset($mapping['terrain'][$terrain]))
 		{
-			//$updateData['workout']['course']['id'] = $mapping['terrain'][$terrain];
+			if (isset($updateData['course']))
+			{
+				unset($updateData['course']);
+			}
+			$updateData['course']['id'] = $mapping['terrain'][$terrain];
 		}
 		
 		//  map shoe to equipment
 		if (isset($mapping['shoe'][$shoe]))
 		{
-			//$updateData['workout']['equipment']['id'] = $mapping['shoe'][$shoe];
+			if (isset($updateData['equipment']))
+			{
+				unset($updateData['equipment']);
+			}
+			$updateData['equipment'][0]['id'] = $mapping['shoe'][$shoe];
 		}
 
 		//  map weather to conditions
 		if (isset($mapping['weather'][$weather]))
 		{
-			//$updateData['workout']['weather']['conditions'][$weather] = true;
+			if (isset($updateData['weather']))
+			{
+				unset($updateData['weather']);
+			}
+			$updateData['weather']['conditions'][0] = $mapping['weather'][$weather];
 		}
 		
 		//  map tag to type
 		if (isset($mapping['tag'][$tag]))
 		{
-			//$updateData['workout']['workOutID'] = $mapping['tag'][$tag];
+			$updateData['workOutID'] = $mapping['tag'][$tag];
 		}
 		
-		//$updateData['workout']['notes'] = $note;
-		
-		// for testing
-		$updateData['workout']['date'] = '2014-06-22';
-		$updateData['workout']['activityID'] = 10;
+		$updateData['notes'] = $note . " [Imported from Nike+]";
+
 		
 		//echo "\nupdate:\n";
 		//var_dump($updateData);  
 		//echo "\n";
         
-        $update = \Httpful\Request::put($updateUrl, json_encode($updateData)) 
+        $update = \Httpful\Request::put($workoutUrl) 
+        ->sendsJson()
+        ->body($updateData)
     	->send(); 
     	
-    	echo "\\nUpdate Summary:\n";
-		var_dump($update);  
-		echo "\n";
-
-    
+    	//echo "\\nUpdate Summary:\n";
+		//var_dump($update);  
+		//echo "\n";
+ 
 	}
 	}
 }
 ob_flush();
 flush();
-break;
+//break;
 }
 
-	echo "summary:\n";
-	var_dump($summary);  
-	echo "\n";
+	//echo "summary:\n";
+	//var_dump($summary);  
+	//echo "\n";
 
 ?>
 </pre>
